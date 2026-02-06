@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Tolerance Acceptance Checker</title>
+</head>
+<body>
+
+<h2>Tolerance Acceptance Checker (±)</h2>
+
+<label>Access Code:</label><br>
+<input id="code"><br><br>
+
+<label>Nominal Value:</label><br>
+<input id="nominal"><br><br>
+
+<label>Measured Value:</label><br>
+<input id="measured"><br><br>
+
+<label>Tolerance (±):</label><br>
+<input id="tol"><br><br>
+
+<label>
+  <input type="checkbox" id="inclusive" checked>
+  Inclusive boundaries
+</label><br><br>
+
+<button onclick="onCheckClick()">Check Acceptance</button>
+
+<pre id="result"></pre>
+
+<script>
+const API_URL = "PASTE_WEB_APP_URL_HERE";
+const API_KEY = "PASTE_API_KEY_HERE";
+
+function validateInputs(N, M, T) {
+  if (!Number.isFinite(N)) return "Nominal value is invalid";
+  if (!Number.isFinite(M)) return "Measured value is invalid";
+  if (!Number.isFinite(T) || T <= 0) return "Tolerance must be > 0";
+  return null;
+}
+
+function checkAcceptance(N, M, T, inclusive) {
+  const lower = N - T;
+  const upper = N + T;
+
+  const pass = inclusive ? (M >= lower && M <= upper)
+                         : (M > lower && M < upper);
+
+  if (pass) {
+    const margin = Math.min(M - lower, upper - M);
+    return {
+      decision: "PASS",
+      text: `Within tolerance by ${margin}`,
+      lower, upper
+    };
+  } else {
+    const exceed = (M > upper) ? (M - upper) : (lower - M);
+    const side = (M > upper) ? "upper" : "lower";
+    return {
+      decision: "FAIL",
+      text: `Exceeds ${side} tolerance by ${exceed}`,
+      lower, upper
+    };
+  }
+}
+
+async function consumeCredit(code) {
+  const r = await fetch(API_URL, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      action: "consume",
+      code: code,
+      apiKey: API_KEY
+    })
+  });
+  return await r.json();
+}
+
+async function onCheckClick() {
+  const code = document.getElementById("code").value.trim();
+  const N = Number(document.getElementById("nominal").value);
+  const M = Number(document.getElementById("measured").value);
+  const T = Number(document.getElementById("tol").value);
+  const inclusive = document.getElementById("inclusive").checked;
+
+  const err = validateInputs(N, M, T);
+  if (err) {
+    alert(err);
+    return;
+  }
+
+  const credit = await consumeCredit(code);
+  if (!credit.ok) {
+    alert(credit.error || "No credits remaining");
+    return;
+  }
+
+  const out = checkAcceptance(N, M, T, inclusive);
+
+  document.getElementById("result").innerText =
+    `${out.decision}\n${out.text}\nAllowed range: ${out.lower} to ${out.upper}\nCredits left: ${credit.credits_remaining}`;
+}
+</script>
+
+</body>
+</html>
