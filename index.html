@@ -45,29 +45,21 @@ function checkAcceptance(N, M, T, inclusive) {
   const lower = N - T;
   const upper = N + T;
 
-  const pass = inclusive ? (M >= lower && M <= upper)
-                         : (M > lower && M < upper);
+  const pass = inclusive ? (M >= lower && M <= upper) : (M > lower && M < upper);
 
   if (pass) {
     const margin = Math.min(M - lower, upper - M);
-    return {
-      decision: "PASS",
-      text: `Within tolerance by ${margin}`,
-      lower, upper
-    };
+    return { decision: "PASS", detail: `Within tolerance by ${margin}`, lower, upper };
   } else {
     const exceed = (M > upper) ? (M - upper) : (lower - M);
     const side = (M > upper) ? "upper" : "lower";
-    return {
-      decision: "FAIL",
-      text: `Exceeds ${side} tolerance by ${exceed}`,
-      lower, upper
-    };
+    return { decision: "FAIL", detail: `Exceeds ${side} tolerance by ${exceed}`, lower, upper };
   }
 }
 
 async function consumeCredit(code) {
-  const r = await fetch(API_URL, {
+  // IMPORTANT: text/plain avoids CORS preflight
+  const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=UTF-8" },
     body: JSON.stringify({
@@ -76,7 +68,7 @@ async function consumeCredit(code) {
       apiKey: API_KEY
     })
   });
-  return await r.json();
+  return await res.json();
 }
 
 async function onCheckClick() {
@@ -96,7 +88,7 @@ async function onCheckClick() {
   try {
     credit = await consumeCredit(code);
   } catch (e) {
-    alert("Request failed — check console");
+    alert("Request failed. Open Console for details.");
     return;
   }
 
@@ -108,8 +100,9 @@ async function onCheckClick() {
   const out = checkAcceptance(N, M, T, inclusive);
 
   document.getElementById("result").innerText =
-    `${out.decision}\n${out.text}\nAllowed range: ${out.lower} to ${out.upper}\nCredits left: ${credit.credits_remaining}`;
+    `${out.decision}\n${out.detail}\nAllowed range: ${out.lower} to ${out.upper}\nCredits left: ${credit.credits_remaining}`;
 }
+
 
 </script>
 
