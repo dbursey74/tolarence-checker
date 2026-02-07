@@ -30,7 +30,9 @@
 <pre id="result"></pre>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwytGF5f0t0b5caus6XdsGfqgakaILZBTSUeIQfiwALTrt25iKmX6rVnwrzHvUJywnw/exec";
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzgl93UbBANHRmQMe2t6YjjNZNblSHyyobgM_P9ahiFWMLCbLqbZYXEEtVsNhPFyytl/exec";
 const API_KEY = "r9K3ZP2A8fLQXwM7D1k2Vn8Pp4sT6yZ";
 
 function validateInputs(N, M, T) {
@@ -68,7 +70,7 @@ function checkAcceptance(N, M, T, inclusive) {
 async function consumeCredit(code) {
   const r = await fetch(API_URL, {
     method: "POST",
-    headers: {"Content-Type":"application/json"},
+    headers: { "Content-Type": "text/plain;charset=UTF-8" },
     body: JSON.stringify({
       action: "consume",
       code: code,
@@ -91,7 +93,14 @@ async function onCheckClick() {
     return;
   }
 
-  const credit = await consumeCredit(code);
+  let credit;
+  try {
+    credit = await consumeCredit(code);
+  } catch (e) {
+    alert("Request failed — check console");
+    return;
+  }
+
   if (!credit.ok) {
     alert(credit.error || "No credits remaining");
     return;
@@ -102,6 +111,8 @@ async function onCheckClick() {
   document.getElementById("result").innerText =
     `${out.decision}\n${out.text}\nAllowed range: ${out.lower} to ${out.upper}\nCredits left: ${credit.credits_remaining}`;
 }
+</script>
+
 </script>
 
 </body>
