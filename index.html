@@ -30,7 +30,7 @@
 <pre id="result"></pre>
 
 <script>
-
+const round = (x) => Math.round(x * 1000000) / 1000000;
 const API_URL = "https://script.google.com/macros/s/AKfycbwOApGnmWBTmSaT04aLQAvEbut11jAFLAgqA-HY2cScUD_uFB2ZOP_8nRNfipOw6fdU/exec";
 const API_KEY = "r9K3ZP2A8fLQXwM7D1k2Vn8Pp4sT6yZ";
 
@@ -48,10 +48,10 @@ function checkAcceptance(N, M, T, inclusive) {
   const pass = inclusive ? (M >= lower && M <= upper) : (M > lower && M < upper);
 
   if (pass) {
-    const margin = Math.min(M - lower, upper - M);
+    const margin = round(Math.min(M - lower, upper - M));
     return { decision: "PASS", detail: `Within tolerance by ${margin}`, lower, upper };
   } else {
-    const exceed = (M > upper) ? (M - upper) : (lower - M);
+    const exceed = round((M > upper) ? (M - upper) : (lower - M));
     const side = (M > upper) ? "upper" : "lower";
     return { decision: "FAIL", detail: `Exceeds ${side} tolerance by ${exceed}`, lower, upper };
   }
